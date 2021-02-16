@@ -1,14 +1,34 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
+import Navbar from '../components/navbar';
+import { connect } from 'react-redux';
+import ClientHome from '../components/clientHome';
+import TechnicianHome from '../components/technicianHome';
 
 class HomeView extends Component {
   state = {};
+
   render() {
+    const { authedUser, requests } = this.props;
+
     return (
-      <div>
-        <div>Home View</div>
-      </div>
+      <Fragment>
+        <Navbar />
+        <div className="container mt-3 home-container">
+          {authedUser.Role.roleValue === 0 ? (
+            <ClientHome />
+          ) : (
+            <TechnicianHome />
+          )}
+        </div>
+      </Fragment>
     );
   }
 }
 
-export default HomeView;
+const mapStateToProps = ({ authedUser }) => {
+  return {
+    authedUser,
+  };
+};
+
+export default connect(mapStateToProps)(HomeView);

@@ -5,6 +5,7 @@ import link from './callBackLink';
 import loading from './loading';
 import authedUser from './authedUser';
 import apartments from './apartments';
+import requests from './requests';
 
 export default combineReducers({
   error,
@@ -13,4 +14,5 @@ export default combineReducers({
   loading,
   authedUser,
   apartments,
+  requests,
 });

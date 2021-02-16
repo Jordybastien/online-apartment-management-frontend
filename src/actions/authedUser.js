@@ -2,6 +2,7 @@ import { SET_AUTHED_USER, LOGOUT_USER, SIGNUP_USER } from './actionTypes';
 import { loginUser, signupUser } from '../services/auth';
 import { logError } from './error';
 import { TOKEN_STORE_KEY } from '../utils/constants';
+import { handleAuthedData } from './initialData';
 
 export const setAuthedUser = (user) => {
   return {
@@ -27,6 +28,7 @@ export const handleUserLogin = (user) => {
     try {
       const response = await loginUser(user);
       localStorage.setItem(TOKEN_STORE_KEY, response.data.token);
+      dispatch(handleAuthedData());
 
       return dispatch(setAuthedUser(response.data.user));
     } catch (error) {

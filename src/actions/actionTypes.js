@@ -15,3 +15,8 @@ export const SIGNUP_USER = 'SIGNUP_USER';
 
 // Apartments
 export const FETCH_APARTMENTS = 'FETCH_APARTMENTS';
+
+// Requests
+export const FETCH_REQUESTS = 'FETCH_REQUESTS';
+
+export const ADD_REQUEST = 'ADD_REQUEST';

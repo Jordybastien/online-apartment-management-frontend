@@ -4,13 +4,15 @@ import { connect } from 'react-redux';
 import { decodeToken } from './services/auth';
 import { TOKEN_STORE_KEY } from './utils/constants';
 import { setAuthedUser } from './actions/authedUser';
-import { handleInitialData } from './actions/initialData';
+import { handleInitialData, handleAuthedData } from './actions/initialData';
 import ReactLoading from 'react-loading';
 import Logo from './assets/logo_cut.png';
 
 class App extends Component {
   componentDidMount() {
     this.props.dispatch(handleInitialData());
+    const user = refreshUser(this.props);
+    if (user) this.props.dispatch(handleAuthedData());
   }
 
   render() {
