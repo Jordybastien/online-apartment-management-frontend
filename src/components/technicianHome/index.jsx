@@ -1,10 +1,13 @@
 import React, { Component, Fragment } from 'react';
 import { connect } from 'react-redux';
 import moment from 'moment';
-import { Tag, Modal, message } from 'antd';
+import { Tag, Modal, message, Popconfirm, Button } from 'antd';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { handleChangeRequest } from '../../actions/requests';
+import {
+  handleChangeRequest,
+  handleDeleteRequest,
+} from '../../actions/requests';
 import TextArea from '../textArea';
 import TextBox from '../textBox';
 
@@ -17,6 +20,9 @@ class TechnicianHome extends Component {
     technicianNote: '',
     seriaNo: '',
     modelNumber: '',
+    requests: this.props.requests,
+    tab: 'all',
+    deleteId: '',
   };
 
   handleRequest = (selectedRequest) => {
@@ -33,11 +39,11 @@ class TechnicianHome extends Component {
     this.props
       .dispatch(handleChangeRequest(selectedRequest.id, { status }))
       .then((res) => {
-        this.setState({ loading: false });
+        this.setState({ loading: false, requests: this.props.requests });
 
         if (res.type !== 'LOG_ERROR') {
           message.success('Request started successfully');
-        } else message.error('Failed to make changes to request');
+        } else message.error('Request not found');
       });
   };
 
@@ -64,7 +70,11 @@ class TechnicianHome extends Component {
         })
       )
       .then((res) => {
-        this.setState({ loading: false, modal1Visible: false });
+        this.setState({
+          loading: false,
+          modal1Visible: false,
+          requests: this.props.requests,
+        });
 
         if (res.type !== 'LOG_ERROR') {
           message.success('Request finished successfully');
@@ -78,14 +88,45 @@ class TechnicianHome extends Component {
 
   handleModel = (e) => this.setState({ modelNumber: e.target.value });
 
+  handleTab = (tab) => {
+    let newRequests;
+    if (tab === 'all') {
+      newRequests = this.props.requests;
+    } else {
+      newRequests = this.props.requests
+        .filter((request) => request.status === tab)
+        .sort((a, b) => b.id - a.id);
+    }
+    this.setState({
+      tab,
+      requests: newRequests,
+    });
+  };
+
+  handleDeleteRequest(request) {
+    this.setState({ loading: true, deleteId: request.id });
+
+    this.props.dispatch(handleDeleteRequest(request.id)).then((res) => {
+      this.setState({ loading: false });
+
+      if (res.type !== 'LOG_ERROR') {
+        message.success('Request deleted successfully');
+        window.location.href = '/dashboard';
+      } else message.error(res.error);
+    });
+  }
+
   render() {
-    const { requests } = this.props;
+    // const {} = this.props;
     const {
       loading,
       selectedRequest,
       technicianNote,
       seriaNo,
       modelNumber,
+      requests,
+      tab,
+      deleteId,
     } = this.state;
 
     return (
@@ -148,6 +189,42 @@ class TechnicianHome extends Component {
               </span>
             </div>
           </div>
+          <div className="pre-header">
+            <div className="employee-header-row">
+              <div className="employee-tabs">
+                <div
+                  className={`employee-tab ${tab === 'all' && 'selected-tab'}`}
+                  onClick={() => this.handleTab('all')}
+                >
+                  <span>All</span>
+                </div>
+                <div
+                  className={`employee-tab ${
+                    tab === 'pending' && 'selected-tab'
+                  }`}
+                  onClick={() => this.handleTab('pending')}
+                >
+                  <span>Pending</span>
+                </div>
+                <div
+                  className={`employee-tab ${
+                    tab === 'processing' && 'selected-tab'
+                  }`}
+                  onClick={() => this.handleTab('processing')}
+                >
+                  <span>Processing</span>
+                </div>
+                <div
+                  className={`employee-tab ${
+                    tab === 'completed' && 'selected-tab'
+                  }`}
+                  onClick={() => this.handleTab('completed')}
+                >
+                  <span>Completed</span>
+                </div>
+              </div>
+            </div>
+          </div>
           <div className="section-body">
             {requests &&
               requests.length !== 0 &&
@@ -182,6 +259,22 @@ class TechnicianHome extends Component {
                     <span className="data-holder-label">Address:</span>
                     <span className="data-holder-value">
                       {request.clientAddress.split(',')[1]}
+                    </span>
+                  </div>
+                  <div className="request-description">
+                    <span className="data-holder-label">Serial No:</span>
+                    <span className="data-holder-value">
+                      {request.serialNo}
+                    </span>
+                  </div>
+                  <div className="request-description">
+                    <span className="data-holder-label">Model No:</span>
+                    <span className="data-holder-value">{request.modelNo}</span>
+                  </div>
+                  <div className="request-description">
+                    <span className="data-holder-label">Technician Note:</span>
+                    <span className="data-holder-value">
+                      {request.technicianNote}
                     </span>
                   </div>
                   <div className="request-footer">
@@ -229,6 +322,28 @@ class TechnicianHome extends Component {
                         'Finish'
                       )}
                     </button>
+                    <div>
+                      <Popconfirm
+                        title="Are you sure to delete this task?"
+                        onConfirm={() => this.handleDeleteRequest(request)}
+                        okText="Yes"
+                        cancelText="No"
+                        className="delete-confirm"
+                      >
+                        <Button type="primary" danger className="custom-delete">
+                          {loading && deleteId === request.id ? (
+                            <FontAwesomeIcon
+                              icon={faSpinner}
+                              size="1x"
+                              color="#fff"
+                              className="ml-2"
+                            />
+                          ) : (
+                            'Delete'
+                          )}
+                        </Button>
+                      </Popconfirm>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -242,11 +357,7 @@ class TechnicianHome extends Component {
 const mapStateToProps = ({ authedUser, requests }) => {
   return {
     authedUser,
-    requests:
-      requests &&
-      Object.values(requests)
-        .filter((request) => request.status !== 'completed')
-        .sort((a, b) => b.id - a.id),
+    requests: requests && Object.values(requests).sort((a, b) => b.id - a.id),
   };
 };
 

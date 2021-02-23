@@ -1,11 +1,11 @@
 import React, { Component, Fragment } from 'react';
 import moment from 'moment';
-import { Tag, Modal, message } from 'antd';
+import { Tag, Modal, message, Popconfirm, Button } from 'antd';
 import { connect } from 'react-redux';
 import TextArea from '../textArea';
 import { faSpinner, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { handleSendRequest } from '../../actions/requests';
+import { handleSendRequest, handleDeleteRequest } from '../../actions/requests';
 
 class ClientHome extends Component {
   state = {
@@ -18,6 +18,9 @@ class ClientHome extends Component {
       description: '',
     },
     errorMessage: '',
+    tab: 'all',
+    requests: this.props.requests,
+    deleteId: '',
   };
 
   handleDescription = (e) => {
@@ -76,8 +79,35 @@ class ClientHome extends Component {
     }
   };
 
+  handleTab = (tab) => {
+    let newRequests;
+    if (tab === 'all') {
+      newRequests = this.props.requests;
+    } else {
+      newRequests = this.props.requests
+        .filter((request) => request.status === tab)
+        .sort((a, b) => b.id - a.id);
+    }
+    this.setState({
+      tab,
+      requests: newRequests,
+    });
+  };
+
+  handleDeleteRequest(request) {
+    this.setState({ loading: true, deleteId: request.id });
+
+    this.props.dispatch(handleDeleteRequest(request.id)).then((res) => {
+      this.setState({ loading: false });
+
+      if (res.type !== 'LOG_ERROR') {
+        message.success('Request deleted successfully');
+        window.location.href = '/dashboard';
+      } else message.error(res.error);
+    });
+  }
+
   render() {
-    const { requests } = this.props;
     const {
       modal1Visible,
       modal2Visible,
@@ -86,7 +116,12 @@ class ClientHome extends Component {
       errors,
       loading,
       errorMessage,
+      tab,
+      requests,
+      deleteId,
     } = this.state;
+
+    
     return (
       <Fragment>
         <Modal
@@ -187,21 +222,56 @@ class ClientHome extends Component {
               </button>
             </div>
           </div>
+          <div className="pre-header">
+            <div className="employee-header-row">
+              <div className="employee-tabs">
+                <div
+                  className={`employee-tab ${tab === 'all' && 'selected-tab'}`}
+                  onClick={() => this.handleTab('all')}
+                >
+                  <span>All</span>
+                </div>
+                <div
+                  className={`employee-tab ${
+                    tab === 'pending' && 'selected-tab'
+                  }`}
+                  onClick={() => this.handleTab('pending')}
+                >
+                  <span>Pending</span>
+                </div>
+                <div
+                  className={`employee-tab ${
+                    tab === 'processing' && 'selected-tab'
+                  }`}
+                  onClick={() => this.handleTab('processing')}
+                >
+                  <span>Processing</span>
+                </div>
+                <div
+                  className={`employee-tab ${
+                    tab === 'completed' && 'selected-tab'
+                  }`}
+                  onClick={() => this.handleTab('completed')}
+                >
+                  <span>Completed</span>
+                </div>
+              </div>
+            </div>
+          </div>
           <div className="section-body">
             {requests &&
               requests.length !== 0 &&
               requests.map((request, index) => (
-                <div
-                  className="user-request-card"
-                  key={index}
-                  onClick={() =>
-                    this.setState({
-                      modal1Visible: true,
-                      selectedRecord: request,
-                    })
-                  }
-                >
-                  <div className="request-description">
+                <div className="user-request-card" key={index}>
+                  <div
+                    className="request-description"
+                    onClick={() =>
+                      this.setState({
+                        modal1Visible: true,
+                        selectedRecord: request,
+                      })
+                    }
+                  >
                     <span className="data-holder-label">Description:</span>
                     <span className="data-holder-value">
                       {request.description}
@@ -217,6 +287,28 @@ class ClientHome extends Component {
                     <div className="tag-holder">
                       {this.tagThis(request.status)}
                     </div>
+                    <div>
+                      <Popconfirm
+                        title="Are you sure to delete this task?"
+                        onConfirm={() => this.handleDeleteRequest(request)}
+                        okText="Yes"
+                        cancelText="No"
+                        className="delete-confirm"
+                      >
+                        <Button type="primary" danger>
+                          {loading && deleteId === request.id ? (
+                            <FontAwesomeIcon
+                              icon={faSpinner}
+                              size="1x"
+                              color="#fff"
+                              className="ml-2"
+                            />
+                          ) : (
+                            'Delete'
+                          )}
+                        </Button>
+                      </Popconfirm>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -230,12 +322,13 @@ class ClientHome extends Component {
 const mapStateToProps = ({ authedUser, requests }) => {
   return {
     authedUser,
-    requests:
-      requests &&
-      Object.values(requests)
-        .filter((request) => request.userId === authedUser.id)
-        // filtering is just a solution due to rush will be resolved on backend
-        .reverse(),
+    requests: requests && Object.values(requests).reverse(),
+    // requests:
+    //   requests &&
+    //   Object.values(requests)
+    //     .filter((request) => request.userId === authedUser.id)
+    //     // filtering is just a solution due to rush will be resolved on backend
+    //     .reverse(),
   };
 };
 

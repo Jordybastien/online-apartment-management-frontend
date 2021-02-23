@@ -1,10 +1,11 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import ReduxToastr from 'react-redux-toastr';
-import HomeView from '../views/home';
+import DashboardView from '../views/home';
 import LoginView from '../views/login';
 import ProtectedRoute from '../components/protectedRoute';
 import SignupView from '../views/signup';
+import HomeView from '../views/homepage';
 
 const Routing = () => {
   return (
@@ -22,7 +23,8 @@ const Routing = () => {
       />
       <Router>
         <Switch>
-          <ProtectedRoute path="/" exact component={HomeView} />
+          <Route path="/" exact component={HomeView} />
+          <ProtectedRoute path="/dashboard" component={DashboardView} />
           <Route path="/login" component={LoginView} />
           <Route path="/signup" component={SignupView} />
         </Switch>

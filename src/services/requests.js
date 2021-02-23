@@ -26,3 +26,11 @@ export const alterRequest = async (requestId, request) => {
     throw Error(error);
   }
 };
+export const deleteRequest = async (requestId) => {
+  try {
+    const res = await api.delete(`request/${requestId}`);
+    return res.data;
+  } catch (error) {
+    throw Error(error);
+  }
+};
