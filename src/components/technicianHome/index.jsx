@@ -300,51 +300,57 @@ class TechnicianHome extends Component {
                       }
                     </div>
                   </div>
-                  <div className="action-button-holder">
-                    <button
-                      className={`btn btn-primary btn-block custom-btn ${
-                        request.status === 'processing' && 'finish-btn'
-                      }`}
-                      onClick={() => this.handleRequest(request)}
-                    >
-                      {loading &&
-                      selectedRequest &&
-                      selectedRequest.id === request.id ? (
-                        <FontAwesomeIcon
-                          icon={faSpinner}
-                          size="2x"
-                          color="#fff"
-                          className="ml-2"
-                        />
-                      ) : request.status !== 'processing' ? (
-                        'Start'
-                      ) : (
-                        'Finish'
-                      )}
-                    </button>
-                    <div>
-                      <Popconfirm
-                        title="Are you sure to delete this task?"
-                        onConfirm={() => this.handleDeleteRequest(request)}
-                        okText="Yes"
-                        cancelText="No"
-                        className="delete-confirm"
+                  {request && request.status !== 'completed' && (
+                    <div className="action-button-holder">
+                      <button
+                        className={`btn btn-primary btn-block custom-btn ${
+                          request.status === 'processing' && 'finish-btn'
+                        }`}
+                        onClick={() => this.handleRequest(request)}
                       >
-                        <Button type="primary" danger className="custom-delete">
-                          {loading && deleteId === request.id ? (
-                            <FontAwesomeIcon
-                              icon={faSpinner}
-                              size="1x"
-                              color="#fff"
-                              className="ml-2"
-                            />
-                          ) : (
-                            'Delete'
-                          )}
-                        </Button>
-                      </Popconfirm>
+                        {loading &&
+                        selectedRequest &&
+                        selectedRequest.id === request.id ? (
+                          <FontAwesomeIcon
+                            icon={faSpinner}
+                            size="2x"
+                            color="#fff"
+                            className="ml-2"
+                          />
+                        ) : request.status !== 'processing' ? (
+                          'Start'
+                        ) : (
+                          'Finish'
+                        )}
+                      </button>
+                      <div>
+                        <Popconfirm
+                          title="Are you sure to delete this task?"
+                          onConfirm={() => this.handleDeleteRequest(request)}
+                          okText="Yes"
+                          cancelText="No"
+                          className="delete-confirm"
+                        >
+                          <Button
+                            type="primary"
+                            danger
+                            className="custom-delete"
+                          >
+                            {loading && deleteId === request.id ? (
+                              <FontAwesomeIcon
+                                icon={faSpinner}
+                                size="1x"
+                                color="#fff"
+                                className="ml-2"
+                              />
+                            ) : (
+                              'Delete'
+                            )}
+                          </Button>
+                        </Popconfirm>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               ))}
           </div>
